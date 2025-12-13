@@ -1,0 +1,319 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTHENTICATION & USERS
+// ============================================
+
+model User {
+  id        String         @id @default(cuid())
+  email     String         @unique
+  password  String // Hashed with bcrypt
+  firstName String
+  lastName  String
+  role      UserRole       @default(WORKER)
+  phone     String?
+  status    EmployeeStatus @default(ACTIVE)
+  hireDate  DateTime       @default(now())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  // Relations
+  plantings    Planting[]
+  activities   Activity[]
+  applications InventoryApplication[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  OWNER
+  MANAGER
+  SUPERVISOR
+  WORKER
+  AGRONOMIST
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  ON_LEAVE
+  TERMINATED
+}
+
+// ============================================
+// PERMISSIONS SYSTEM
+// ============================================
+
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique // e.g., "fields.create", "users.delete"
+  description String?
+  resource    String // e.g., "fields", "users", "crops"
+  action      String // e.g., "create", "read", "update", "delete"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  role         UserRole
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  // Relations
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([role, permissionId])
+  @@map("role_permissions")
+}
+
+// ============================================
+// FARM & FIELDS
+// ============================================
+
+model Farm {
+  id          String   @id @default(cuid())
+  name        String
+  location    String
+  totalArea   Float // in hectares
+  climateZone String?
+  soilType    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  fields Field[]
+
+  @@map("farms")
+}
+
+model Field {
+  id             String      @id @default(cuid())
+  farmId         String
+  name           String
+  fieldType      FieldType
+  area           Float // in hectares
+  location       String? // GPS coordinates
+  soilType       String?
+  irrigationType String?
+  status         FieldStatus @default(ACTIVE)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Relations
+  farm         Farm                   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  plantings    Planting[]
+  activities   Activity[]
+  applications InventoryApplication[]
+
+  @@map("fields")
+}
+
+enum FieldType {
+  OPEN_FIELD
+  GREENHOUSE
+  SCREENHOUSE
+  SHADE_HOUSE
+  NURSERY
+  HYDROPONICS
+}
+
+enum FieldStatus {
+  ACTIVE
+  FALLOW
+  UNDER_PREPARATION
+}
+
+// ============================================
+// CROPS
+// ============================================
+
+model Crop {
+  id              String       @id @default(cuid())
+  name            String
+  scientificName  String?
+  category        CropCategory
+  variety         String?
+  growthCycleDays Int // Expected days from planting to harvest
+  expectedYield   Float? // per hectare
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relations
+  plantings Planting[]
+
+  @@map("crops")
+}
+
+enum CropCategory {
+  VEGETABLES
+  FRUITS
+  CEREALS
+  LEGUMES
+  HERBS
+  FLOWERS
+  OTHER
+}
+
+model Planting {
+  id                  String         @id @default(cuid())
+  fieldId             String
+  cropId              String
+  plantingDate        DateTime
+  expectedHarvestDate DateTime
+  actualHarvestDate   DateTime?
+  plantingMethod      PlantingMethod
+  seedSource          String?
+  quantityPlanted     Float?
+  plantingDensity     String?
+  status              PlantingStatus @default(GROWING)
+  plantedBy           String
+  notes               String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  // Relations
+  field         Field      @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  crop          Crop       @relation(fields: [cropId], references: [id])
+  plantedByUser User       @relation(fields: [plantedBy], references: [id])
+  activities    Activity[]
+
+  @@map("plantings")
+}
+
+enum PlantingMethod {
+  DIRECT_SEEDING
+  TRANSPLANTING
+}
+
+enum PlantingStatus {
+  GROWING
+  HARVESTED
+  FAILED
+}
+
+// ============================================
+// INVENTORY
+// ============================================
+
+model Product {
+  id               String          @id @default(cuid())
+  name             String
+  brand            String?
+  category         ProductCategory
+  type             String? // e.g., "Insecticide", "NPK 20-10-10"
+  activeIngredient String?
+  manufacturer     String?
+  unit             String // e.g., "liters", "kg"
+  reorderLevel     Float?
+  currentStock     Float           @default(0)
+  costPerUnit      Float?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  // Relations
+  batches      ProductBatch[]
+  applications InventoryApplication[]
+
+  @@map("products")
+}
+
+enum ProductCategory {
+  AGROCHEMICAL
+  FERTILIZER
+  SEED
+  EQUIPMENT
+}
+
+model ProductBatch {
+  id           String    @id @default(cuid())
+  productId    String
+  batchNumber  String
+  quantity     Float
+  expiryDate   DateTime?
+  purchaseDate DateTime
+  supplier     String?
+  costPerUnit  Float?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_batches")
+}
+
+model InventoryApplication {
+  id                String   @id @default(cuid())
+  productId         String
+  fieldId           String
+  plantingId        String?
+  applicationDate   DateTime
+  quantityUsed      Float
+  applicationMethod String? // e.g., "spray", "drip"
+  dilutionRate      String?
+  reason            String? // e.g., pest name, nutrient deficiency
+  appliedBy         String
+  weatherConditions String?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  product       Product @relation(fields: [productId], references: [id])
+  field         Field   @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  appliedByUser User    @relation(fields: [appliedBy], references: [id])
+
+  @@map("inventory_applications")
+}
+
+// ============================================
+// ACTIVITIES
+// ============================================
+
+model Activity {
+  id           String       @id @default(cuid())
+  type         ActivityType
+  fieldId      String
+  plantingId   String?
+  activityDate DateTime
+  performedBy  String
+  description  String
+  duration     Int? // in minutes
+  notes        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // Relations
+  field           Field     @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  planting        Planting? @relation(fields: [plantingId], references: [id])
+  performedByUser User      @relation(fields: [performedBy], references: [id])
+
+  @@map("activities")
+}
+
+enum ActivityType {
+  PLANTING
+  IRRIGATION
+  FERTILIZATION
+  PEST_CONTROL
+  WEEDING
+  PRUNING
+  HARVESTING
+  SOIL_PREPARATION
+  OTHER
+}
