@@ -1,32 +1,30 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { authService } from "@/lib/services";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/auth.schema";
-import bcrypt from "bcryptjs";
 
 export async function loginAction(email: string, password: string) {
     try {
         console.log("Login attempt:", { email, passwordLength: password?.length });
 
-        // Manually verify credentials first
-        const user = await prisma.user.findUnique({
-            where: { email },
-        });
+        // Use AuthService to verify credentials
+        const user = await authService.verifyCredentials(email, password);
 
         if (!user) {
-            console.log("User not found");
+            console.log("Invalid credentials");
             return { success: false, error: "Invalid email or password" };
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-
-        if (!isPasswordValid) {
-            console.log("Invalid password");
-            return { success: false, error: "Invalid email or password" };
-        }
-
-        console.log("Credentials valid, user authenticated");
-        return { success: true, user: { id: user.id, email: user.email, role: user.role } };
+        console.log("Credentials valid");
+        return {
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: `${user.firstName} ${user.lastName}`,
+                role: user.role,
+            },
+        };
     } catch (error) {
         console.error("Login error:", error);
         return { success: false, error: "Invalid email or password" };
@@ -37,33 +35,22 @@ export async function registerAction(data: RegisterFormData) {
     try {
         const validated = registerSchema.parse(data);
 
-        // Check if user already exists
-        const existingUser = await prisma.user.findUnique({
-            where: { email: validated.email },
-        });
-
-        if (existingUser) {
-            return { success: false, error: "User with this email already exists" };
-        }
-
-        // Hash password
-        const hashedPassword = await bcrypt.hash(validated.password, 10);
-
-        // Create user
-        const user = await prisma.user.create({
-            data: {
-                email: validated.email,
-                password: hashedPassword,
-                firstName: validated.firstName,
-                lastName: validated.lastName,
-                phone: validated.phone,
-                role: validated.role,
-            },
-        });
+        // Use AuthService to create user
+        const user = await authService.createUser(validated);
 
         return { success: true, data: { id: user.id, email: user.email } };
-    } catch (error) {
+    } catch (error: any) {
         console.error("Registration error:", error);
+
+        // Handle specific error types
+        if (error.name === "ConflictError") {
+            return { success: false, error: error.message };
+        }
+
+        if (error.name === "ValidationError") {
+            return { success: false, error: error.message };
+        }
+
         return { success: false, error: "Failed to create account" };
     }
 }
