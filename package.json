@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "prisma migrate deploy && npm run db:seed && next dev",
+    "dev": "prisma migrate deploy && npm run db:seed && next dev -p 3001",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
