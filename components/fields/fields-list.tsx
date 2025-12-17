@@ -87,30 +87,42 @@ export function FieldsList({ initialFields }: FieldsListProps) {
                             <CardHeader className="flex flex-row items-start justify-between space-y-0">
                                 <div className="space-y-1">
                                     <CardTitle className="text-xl">{field.name}</CardTitle>
-                                    <CardDescription>
-                                        {FIELD_TYPES[field.fieldType as keyof typeof FIELD_TYPES]}
-                                    </CardDescription>
-                                </div>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <MoreVertical className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={() => handleEdit(field)}>
-                                            <Pencil className="mr-2 h-4 w-4" />
-                                            Edit
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            onClick={() => handleDelete(field.id)}
-                                            className="text-destructive"
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="flex-1"
+                                            onClick={() => router.push(`/dashboard/fields/${field.id}`)}
                                         >
-                                            <Trash2 className="mr-2 h-4 w-4" />
-                                            Delete
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                                            View Details
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="flex-1"
+                                            onClick={() => handleEdit(field)}
+                                        >
+                                            <Pencil className="h-4 w-4 mr-2" />
+                                            Edit
+                                        </Button>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="sm">
+                                                    <MoreVertical className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem
+                                                    className="text-destructive"
+                                                    onClick={() => handleDelete(field.id)}
+                                                >
+                                                    <Trash2 className="h-4 w-4 mr-2" />
+                                                    Delete
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                </div>
                             </CardHeader>
                             <CardContent className="space-y-2">
                                 <div className="flex items-center justify-between text-sm">

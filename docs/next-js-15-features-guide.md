@@ -97,7 +97,208 @@ function FieldForm() {
 - "Automatic cache revalidation means the UI updates without manual refetching"
 - "Progressive enhancement - forms work even if JavaScript fails"
 
-## 3. Route Groups
+## 3. Dynamic Routes with [id] Parameters
+
+### What They Are
+Routes that accept dynamic parameters in the URL using bracket notation `[param]`.
+
+### Benefits
+- **Clean URLs** - `/fields/abc123` instead of `/fields?id=abc123`
+- **Type-safe params** - TypeScript knows the shape
+- **SEO-friendly** - better for search engines
+- **Automatic routing** - no manual route configuration
+
+### Where We Use Them
+```typescript
+// app/(dashboard)/dashboard/fields/[id]/page.tsx
+export default async function FieldDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>; // Next.js 15: params is now a Promise
+}) {
+  const { id } = await params; // Must await params
+  
+  const field = await fieldService.getFieldById(id);
+  const stats = await fieldService.getFieldStatistics(id);
+  
+  return (
+    <div>
+      <h1>{field.name}</h1>
+      <p>Area: {field.area} hectares</p>
+      <p>Active Plantings: {stats.activePlantings}</p>
+    </div>
+  );
+}
+```
+
+### Interview Talking Points
+- "Dynamic routes provide clean, SEO-friendly URLs"
+- "In Next.js 15, params is now a Promise for better streaming performance"
+- "Type-safe parameters prevent runtime errors"
+- "Can generate static pages at build time with generateStaticParams"
+
+## 4. Loading States & Streaming
+
+### What They Are
+Special `loading.tsx` files that show loading UI while data is being fetched, with progressive rendering.
+
+### Benefits
+- **Instant feedback** - users see something immediately
+- **Better UX** - no blank screens
+- **Automatic Suspense** - Next.js wraps in Suspense
+- **Progressive rendering** - content streams in as ready
+
+### Where We Use Them
+```typescript
+// app/(dashboard)/dashboard/fields/loading.tsx
+export default function FieldsLoading() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      {/* Skeleton UI */}
+      <div className="grid grid-cols-3 gap-6">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="border rounded-lg p-6 space-y-4">
+            <div className="h-6 w-3/4 bg-muted rounded"></div>
+            <div className="h-4 w-1/2 bg-muted rounded"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// app/(dashboard)/dashboard/fields/[id]/loading.tsx
+export default function FieldDetailLoading() {
+  return <FieldDetailSkeleton />;
+}
+```
+
+### How It Works
+1. User navigates to `/dashboard/fields`
+2. Next.js shows `loading.tsx` immediately
+3. Data fetches in background
+4. Page replaces loading state when ready
+
+### Interview Talking Points
+- "Loading states provide instant feedback while data streams in"
+- "Each route can have its own loading UI"
+- "Automatic Suspense boundaries - no manual setup needed"
+- "Improves perceived performance significantly"
+
+## 5. API Route Handlers
+
+### What They Are
+RESTful API endpoints built with Next.js using the App Router.
+
+### Benefits
+- **Type-safe** - full TypeScript support
+- **Edge-ready** - can run on edge runtime
+- **Flexible** - supports all HTTP methods
+- **Integrated** - same codebase as UI
+
+### Where We Use Them
+```typescript
+// app/api/fields/route.ts
+import { fieldService } from "@/lib/services";
+import { NextResponse } from "next/server";
+
+// GET /api/fields?farmId=xxx
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const farmId = searchParams.get("farmId");
+  
+  const fields = await fieldService.getFieldsByFarm(farmId);
+  
+  return NextResponse.json({
+    success: true,
+    data: fields,
+    count: fields.length,
+  });
+}
+
+// POST /api/fields
+export async function POST(request: Request) {
+  const body = await request.json();
+  const field = await fieldService.createField(body);
+  
+  return NextResponse.json(
+    { success: true, data: field },
+    { status: 201 }
+  );
+}
+
+// app/api/fields/[id]/route.ts
+// GET /api/fields/:id
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const field = await fieldService.getFieldById(id);
+  
+  return NextResponse.json({ success: true, data: field });
+}
+
+// PATCH /api/fields/:id
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const body = await request.json();
+  const field = await fieldService.updateField(id, body);
+  
+  return NextResponse.json({ success: true, data: field });
+}
+
+// DELETE /api/fields/:id
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  await fieldService.deleteField(id);
+  
+  return NextResponse.json({ success: true });
+}
+```
+
+### API Endpoints Available
+- `GET /api/fields?farmId=xxx` - List all fields
+- `POST /api/fields` - Create new field
+- `GET /api/fields/:id` - Get field details
+- `PATCH /api/fields/:id` - Update field
+- `DELETE /api/fields/:id` - Delete field
+
+### Testing with cURL
+```bash
+# Get fields
+curl http://localhost:3001/api/fields?farmId=abc123
+
+# Create field
+curl -X POST http://localhost:3001/api/fields \
+  -H "Content-Type: application/json" \
+  -d '{"name":"North Field","area":10,"farmId":"abc123"}'
+
+# Get specific field
+curl http://localhost:3001/api/fields/field-id
+
+# Update field
+curl -X PATCH http://localhost:3001/api/fields/field-id \
+  -H "Content-Type: application/json" \
+  -d '{"area":15}'
+
+# Delete field
+curl -X DELETE http://localhost:3001/api/fields/field-id
+```
+
+### Interview Talking Points
+- "API Route Handlers provide RESTful endpoints when needed for external integrations"
+- "While Server Actions handle most mutations, API routes are useful for webhooks and third-party integrations"
+- "Full TypeScript support ensures type-safe API contracts"
+- "Can run on edge runtime for global low-latency responses"
+
+## 6. Route Groups
 
 ### What They Are
 Folders wrapped in parentheses `(folder)` that organize routes without affecting the URL structure.
