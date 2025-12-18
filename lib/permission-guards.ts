@@ -2,8 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { hasAnyPermission } from "./permissions";
 import { getRoutePermissions } from "./route-permissions";
-
-type UserRole = "OWNER" | "MANAGER" | "SUPERVISOR" | "WORKER" | "AGRONOMIST";
+import { UserRole } from "@/core/domain/constants";
 
 /**
  * Server-side permission check for Server Components and Server Actions

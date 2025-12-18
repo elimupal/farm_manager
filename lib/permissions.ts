@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma";
-
-// Define UserRole type from the enum values
-type UserRole = "OWNER" | "MANAGER" | "SUPERVISOR" | "WORKER" | "AGRONOMIST";
+import { UserRole } from "@/core/domain/constants";
 
 /**
  * Check if a user role has a specific permission

@@ -1,11 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
+import { NotFoundError } from "@/core/domain/errors";
+import type { PaginationParams, PaginatedResponse } from "@/core/shared";
 import {
     ServiceError,
-    NotFoundError,
     ValidationError,
-    type PaginationParams,
-    type PaginatedResponse,
 } from "./types";
 
 /**
@@ -45,7 +44,7 @@ export abstract class BaseService {
         if (missing.length > 0) {
             throw new ValidationError(
                 `Missing required fields: ${missing.join(", ")}`,
-                missing.reduce((acc, field) => ({ ...acc, [field]: "Required" }), {})
+                missing.reduce((acc: Record<string, string>, field) => ({ ...acc, [field]: "Required" }), {})
             );
         }
     }

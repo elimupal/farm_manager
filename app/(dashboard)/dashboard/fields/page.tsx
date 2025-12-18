@@ -1,4 +1,4 @@
-import { getFields } from "@/actions/field.actions";
+import { getAllFieldsAction } from "@/infrastructure/http/actions/field.actions";
 import { FieldsList } from "@/components/fields/fields-list";
 
 export const metadata: { title: string; description: string } = {
@@ -7,7 +7,7 @@ export const metadata: { title: string; description: string } = {
 };
 
 export default async function FieldsPage() {
-    const result = await getFields();
+    const result = await getAllFieldsAction();
     const fields = result.data || [];
 
     return <FieldsList initialFields={fields} />;

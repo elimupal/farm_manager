@@ -1,18 +1,20 @@
 import { BaseService } from "./base.service";
-import { NotFoundError, ConflictError } from "./types";
+import { NotFoundError, ConflictError } from "@/core/domain/errors";
 import bcrypt from "bcryptjs";
 import type { User } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { UserRole } from "@/core/domain/constants";
 
-export type CreateUserInput = {
-    email: string;
-    password: string;
+export interface RegisterUserData {
     firstName: string;
     lastName: string;
+    email: string;
+    password: string;
     phone?: string;
-    role?: "OWNER" | "MANAGER" | "SUPERVISOR" | "WORKER" | "AGRONOMIST";
-};
+    role?: UserRole;
+}
 
-export type UpdateUserInput = Partial<Omit<CreateUserInput, "password">>;
+export type UpdateUserInput = Partial<Omit<RegisterUserData, "password">>;
 
 /**
  * Authentication and user management service
@@ -53,7 +55,7 @@ export class AuthService extends BaseService {
     /**
      * Create a new user
      */
-    async createUser(data: CreateUserInput): Promise<Omit<User, "password">> {
+    async createUser(data: RegisterUserData): Promise<Omit<User, "password">> {
         try {
             this.log("createUser", { email: data.email });
 

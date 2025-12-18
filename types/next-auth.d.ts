@@ -1,3 +1,7 @@
+/** 
+ * These are for framework-specific types and are not related to the application logic.
+ */
+
 import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {

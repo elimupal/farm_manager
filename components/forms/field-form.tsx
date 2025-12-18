@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { fieldSchema, type FieldFormData } from "@/lib/validations/field.schema";
-import { createField, updateField } from "@/actions/field.actions";
-import { FIELD_TYPES, FIELD_STATUS } from "@/lib/constants";
+import { createFieldAction, updateFieldAction } from "@/infrastructure/http/actions/field.actions";
+import { FieldType, FieldStatus, FIELD_TYPE_LABELS, FIELD_STATUS_LABELS } from "@/core/domain/constants";
 import {
     Dialog,
     DialogContent,
@@ -69,16 +69,23 @@ export function FieldForm({ open, onOpenChange, field, onSuccess }: FieldFormPro
     async function onSubmit(data: FieldFormData) {
         setError("");
 
-        const result = field
-            ? await updateField(field.id, data)
-            : await createField(data);
+        try {
+            // TODO: Get farmId from context/session - using seeded farm for now
+            const farmId = "cmjbsf2wd0062qixx3x24nxgh";
 
-        if (result.success) {
-            form.reset();
-            onOpenChange(false);
-            onSuccess?.();
-        } else {
-            setError(result.error || "Operation failed");
+            const result = field
+                ? await updateFieldAction(field.id, data as any)
+                : await createFieldAction({ ...data, farmId } as any);
+
+            if (result.success) {
+                form.reset();
+                onOpenChange(false);
+                onSuccess?.();
+            } else {
+                setError(result.error || "Operation failed");
+            }
+        } catch (err) {
+            setError("An unexpected error occurred");
         }
     }
 
@@ -130,7 +137,7 @@ export function FieldForm({ open, onOpenChange, field, onSuccess }: FieldFormPro
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {Object.entries(FIELD_TYPES).map(([key, label]) => (
+                                                {Object.entries(FIELD_TYPE_LABELS).map(([key, label]) => (
                                                     <SelectItem key={key} value={key}>
                                                         {label}
                                                     </SelectItem>
@@ -177,7 +184,7 @@ export function FieldForm({ open, onOpenChange, field, onSuccess }: FieldFormPro
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {Object.entries(FIELD_STATUS).map(([key, label]) => (
+                                                {Object.entries(FIELD_STATUS_LABELS).map(([key, label]) => (
                                                     <SelectItem key={key} value={key}>
                                                         {label}
                                                     </SelectItem>

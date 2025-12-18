@@ -1,7 +1,17 @@
 "use server";
 
-import { authService } from "@/lib/services";
+import { authService, type RegisterUserData } from "@/lib/services/auth.service";
+import { UserRole } from "@/core/domain/constants";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/auth.schema";
+
+export interface RegisterUserInput {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    role?: UserRole;
+}
 
 export async function loginAction(email: string, password: string) {
     try {

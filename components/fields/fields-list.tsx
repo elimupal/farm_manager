@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { FieldForm } from "@/components/forms/field-form";
-import { deleteField } from "@/actions/field.actions";
-import { FIELD_TYPES, FIELD_STATUS } from "@/lib/constants";
+import { deleteFieldAction } from "@/infrastructure/http/actions/field.actions";
+import { FIELD_STATUS_LABELS } from "@/core/domain/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +29,7 @@ export function FieldsList({ initialFields }: FieldsListProps) {
     async function handleDelete(id: string) {
         if (!confirm("Are you sure you want to delete this field?")) return;
 
-        const result = await deleteField(id);
+        const result = await deleteFieldAction(id);
         if (result.success) {
             setFields(fields.filter((f) => f.id !== id));
             router.refresh();
@@ -134,7 +134,7 @@ export function FieldsList({ initialFields }: FieldsListProps) {
                                     <Badge
                                         variant={field.status === "ACTIVE" ? "default" : "secondary"}
                                     >
-                                        {FIELD_STATUS[field.status as keyof typeof FIELD_STATUS]}
+                                        {FIELD_STATUS_LABELS[field.status as keyof typeof FIELD_STATUS_LABELS]}
                                     </Badge>
                                 </div>
                                 {field.soilType && (

@@ -4,11 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "prisma migrate deploy && npm run db:seed && next dev -p 3001",
+    "dev:safe": "prisma db push && npm run db:seed && next dev -p 3001",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "db:setup": "prisma generate && prisma db push",
     "db:seed": "node prisma/seed.js",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "setup": "npm install && npm run db:setup && npm run db:seed"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

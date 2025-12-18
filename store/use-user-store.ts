@@ -1,3 +1,7 @@
+/**
+ * Client side store for user preferences
+ */
+
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
