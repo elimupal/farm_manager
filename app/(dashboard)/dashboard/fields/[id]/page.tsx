@@ -5,6 +5,27 @@ import { MapPin, Ruler, Droplets, Sprout } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getAllFieldsAction } from "@/infrastructure/http/actions/field.actions";
+import type { Metadata } from 'next';
+
+// Generate dynamic metadata for SEO
+export async function generateMetadata(
+    { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+    const { id } = await params;
+    const result = await getAllFieldsAction();
+    const field = result.data?.find(f => f.id === id);
+
+    if (!field) {
+        return {
+            title: 'Field Not Found',
+        };
+    }
+
+    return {
+        title: `${field.name} - Field Details`,
+        description: `${field.fieldType} field covering ${field.area} hectares. Status: ${field.status}`,
+    };
+}
 
 export default async function FieldDetailPage({
     params,
