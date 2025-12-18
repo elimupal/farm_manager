@@ -16,7 +16,7 @@ export default function LoginPage() {
     const router = useRouter();
     const [error, setError] = useState<string>("");
 
-    const form = useForm<LoginFormData>({
+    const form = useForm<LoginUserFormData>({
         resolver: zodResolver(loginSchema),
         defaultValues: {
             email: "",
@@ -24,7 +24,7 @@ export default function LoginPage() {
         },
     });
 
-    async function onSubmit(data: LoginFormData) {
+    async function onSubmit(data: LoginUserFormData) {
         setError("");
 
         // Use NextAuth's signIn from next-auth/react for client-side

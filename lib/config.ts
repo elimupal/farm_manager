@@ -10,7 +10,7 @@ export const config = {
     // Authentication
     auth: {
         secret: process.env.NEXTAUTH_SECRET || "",
-        url: process.env.NEXTAUTH_URL || "http://localhost:3000",
+        url: process.env.NEXTAUTH_URL || "http://localhost:3001",
     },
 
     // Seeding
