@@ -40,6 +40,11 @@ import {
     DeactivateUserUseCase,
     DeleteUserUseCase,
 } from '@/core/application/use-cases/user';
+import {
+    AuthenticateUserUseCase,
+    RegisterUserUseCase,
+} from '@/core/application/use-cases/auth';
+import { AuthService } from '@/infrastructure/auth/auth.service';
 
 class DIContainer {
     // Repositories (Singleton)
@@ -187,6 +192,25 @@ class DIContainer {
 
     get deleteUserUseCase(): DeleteUserUseCase {
         return new DeleteUserUseCase(this.userRepository);
+    }
+
+    // Auth Service (Singleton)
+    private _authService?: AuthService;
+
+    get authService(): AuthService {
+        if (!this._authService) {
+            this._authService = new AuthService(prisma);
+        }
+        return this._authService;
+    }
+
+    // Auth Use Cases
+    get authenticateUserUseCase(): AuthenticateUserUseCase {
+        return new AuthenticateUserUseCase(this.authService);
+    }
+
+    get registerUserUseCase(): RegisterUserUseCase {
+        return new RegisterUserUseCase(this.userRepository, this.authService);
     }
 }
 

@@ -36,9 +36,14 @@ export const updateUserSchema = z.object({
 /**
  * Schema for user registration (with password)
  */
-export const registerUserSchema = createUserSchema.extend({
+export const registerUserSchema = z.object({
+    firstName: z.string().min(1, 'First name is required'),
+    lastName: z.string().min(1, 'Last name is required'),
+    email: z.string().email('Invalid email address'),
     password: z.string()
         .min(USER_CONSTRAINTS.PASSWORD_MIN_LENGTH, `Password must be at least ${USER_CONSTRAINTS.PASSWORD_MIN_LENGTH} characters`),
+    phone: z.string().optional(),
+    role: z.nativeEnum(UserRole),
 });
 
 /**
@@ -49,8 +54,16 @@ export const loginUserSchema = z.object({
     password: z.string().min(1, 'Password is required'),
 });
 
+// Aliases for convenience
+export const loginSchema = loginUserSchema;
+export const registerSchema = registerUserSchema;
+
 // Export inferred types
 export type CreateUserFormData = z.infer<typeof createUserSchema>;
 export type UpdateUserFormData = z.infer<typeof updateUserSchema>;
 export type RegisterUserFormData = z.infer<typeof registerUserSchema>;
 export type LoginUserFormData = z.infer<typeof loginUserSchema>;
+
+// Aliases for convenience
+export type RegisterFormData = RegisterUserFormData;
+export type LoginFormData = LoginUserFormData;

@@ -1,33 +1,39 @@
-import { fieldService } from "@/lib/services";
-import { NextResponse } from "next/server";
+import { container } from '@/config/di-container';
+import { NextResponse } from 'next/server';
 
 /**
  * GET /api/fields
- * Get all fields
+ * Get all fields (optionally filtered by farmId)
+ * Example: Demonstrates API Route using Clean Architecture
  */
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
-        const farmId = searchParams.get("farmId");
+        const farmId = searchParams.get('farmId');
 
-        if (!farmId) {
+        const useCase = container.getFieldsUseCase;
+
+        // Get fields by farm or all fields
+        const result = farmId
+            ? await useCase.executeByFarmId(farmId)
+            : await useCase.executeAll();
+
+        if (result.isFailure) {
             return NextResponse.json(
-                { error: "farmId is required" },
+                { success: false, error: result.error.message },
                 { status: 400 }
             );
         }
 
-        const fields = await fieldService.getFieldsByFarm(farmId);
-
         return NextResponse.json({
             success: true,
-            data: fields,
-            count: fields.length,
+            data: result.value,
+            count: result.value.length,
         });
     } catch (error: any) {
-        console.error("GET /api/fields error:", error);
+        console.error('GET /api/fields error:', error);
         return NextResponse.json(
-            { success: false, error: error.message || "Failed to fetch fields" },
+            { success: false, error: error.message || 'Failed to fetch fields' },
             { status: 500 }
         );
     }
@@ -36,32 +42,34 @@ export async function GET(request: Request) {
 /**
  * POST /api/fields
  * Create a new field
+ * Example: Demonstrates API Route using Clean Architecture
  */
 export async function POST(request: Request) {
     try {
         const body = await request.json();
 
-        const field = await fieldService.createField(body);
+        const useCase = container.createFieldUseCase;
+        const result = await useCase.execute(body);
 
-        return NextResponse.json(
-            {
-                success: true,
-                data: field,
-            },
-            { status: 201 }
-        );
-    } catch (error: any) {
-        console.error("POST /api/fields error:", error);
-
-        if (error.name === "ValidationError") {
+        if (result.isFailure) {
             return NextResponse.json(
-                { success: false, error: error.message },
+                { success: false, error: result.error.message },
                 { status: 400 }
             );
         }
 
         return NextResponse.json(
-            { success: false, error: error.message || "Failed to create field" },
+            {
+                success: true,
+                data: result.value,
+            },
+            { status: 201 }
+        );
+    } catch (error: any) {
+        console.error('POST /api/fields error:', error);
+
+        return NextResponse.json(
+            { success: false, error: error.message || 'Failed to create field' },
             { status: 500 }
         );
     }

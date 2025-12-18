@@ -1,10 +1,10 @@
-import { fieldService } from "@/lib/services";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Ruler, Droplets, Sprout } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { getAllFieldsAction } from "@/infrastructure/http/actions/field.actions";
 
 export default async function FieldDetailPage({
     params,
@@ -12,15 +12,19 @@ export default async function FieldDetailPage({
     params: Promise<{ id: string }>;
 }) {
     const { id } = await params;
-    let field;
 
-    try {
-        field = await fieldService.getFieldById(id);
-    } catch (error) {
+    // Get all fields and find the one we need
+    const result = await getAllFieldsAction();
+
+    if (!result.success || !result.data) {
         notFound();
     }
 
-    const stats = await fieldService.getFieldStatistics(id);
+    const field = result.data.find(f => f.id === id);
+
+    if (!field) {
+        notFound();
+    }
 
     return (
         <div className="space-y-6">
@@ -93,95 +97,37 @@ export default async function FieldDetailPage({
                 </CardContent>
             </Card>
 
-            {/* Statistics */}
+            {/* Statistics - Simplified for now */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Active Plantings</CardTitle>
+                        <CardTitle className="text-lg">Plantings</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-3xl font-bold">{stats.activePlantings}</p>
+                        <p className="text-3xl font-bold">{field.plantingsCount || 0}</p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Total Activities</CardTitle>
+                        <CardTitle className="text-lg">Status</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-3xl font-bold">{stats.totalActivities}</p>
+                        <Badge variant={field.status === "ACTIVE" ? "default" : "secondary"}>
+                            {field.status}
+                        </Badge>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Recent Plantings</CardTitle>
+                        <CardTitle className="text-lg">Type</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-3xl font-bold">{field.plantings.length}</p>
+                        <Badge variant="outline">{field.fieldType.replace(/_/g, " ")}</Badge>
                     </CardContent>
                 </Card>
             </div>
-
-            {/* Recent Activities */}
-            {stats.recentActivities.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Recent Activities</CardTitle>
-                        <CardDescription>Latest activities on this field</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {stats.recentActivities.map((activity) => (
-                                <div
-                                    key={activity.id}
-                                    className="flex items-center justify-between p-3 border rounded-lg"
-                                >
-                                    <div>
-                                        <p className="font-medium">{activity.type}</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {activity.performedByUser.firstName} {activity.performedByUser.lastName}
-                                        </p>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground">
-                                        {new Date(activity.activityDate).toLocaleDateString()}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
-            {/* Plantings */}
-            {field.plantings.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Plantings</CardTitle>
-                        <CardDescription>Crops planted in this field</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {field.plantings.map((planting) => (
-                                <div
-                                    key={planting.id}
-                                    className="flex items-center justify-between p-3 border rounded-lg"
-                                >
-                                    <div>
-                                        <p className="font-medium">{planting.crop.name}</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            Planted: {new Date(planting.plantingDate).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                    <Badge variant={planting.status === "GROWING" ? "default" : "secondary"}>
-                                        {planting.status}
-                                    </Badge>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
         </div>
     );
 }

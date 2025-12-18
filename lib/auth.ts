@@ -1,9 +1,9 @@
-import NextAuth, { type NextAuthOptions } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import NextAuth, { type NextAuthOptions, User as NextAuthUser } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
-import { loginSchema } from "@/lib/validations/auth.schema";
+import { loginSchema, registerSchema, type LoginUserFormData, type RegisterUserFormData } from "@/infrastructure/http/schemas/user.schema";
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma) as any,
@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
         signIn: "/login",
     },
     providers: [
-        Credentials({
+        CredentialsProvider({
             credentials: {
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" },

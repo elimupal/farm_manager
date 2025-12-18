@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { fieldSchema, type FieldFormData } from "@/lib/validations/field.schema";
+import { createFieldSchema, type CreateFieldFormData } from "@/infrastructure/http/schemas/field.schema";
 import { createFieldAction, updateFieldAction } from "@/infrastructure/http/actions/field.actions";
 import { FieldType, FieldStatus, FIELD_TYPE_LABELS, FIELD_STATUS_LABELS } from "@/core/domain/constants";
 import {
@@ -43,8 +43,8 @@ interface FieldFormProps {
 export function FieldForm({ open, onOpenChange, field, onSuccess }: FieldFormProps) {
     const [error, setError] = useState<string>("");
 
-    const form = useForm<FieldFormData>({
-        resolver: zodResolver(fieldSchema),
+    const form = useForm<CreateFieldFormData>({
+        resolver: zodResolver(createFieldSchema),
         defaultValues: field
             ? {
                 name: field.name,
@@ -66,7 +66,7 @@ export function FieldForm({ open, onOpenChange, field, onSuccess }: FieldFormPro
             },
     });
 
-    async function onSubmit(data: FieldFormData) {
+    async function onSubmit(data: CreateFieldFormData) {
         setError("");
 
         try {
