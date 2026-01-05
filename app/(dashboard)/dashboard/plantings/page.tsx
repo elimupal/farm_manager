@@ -26,7 +26,7 @@ async function getPlantingsData() {
         }),
         prisma.crop.findMany({
             orderBy: {
-                name: 'asc',
+                createdAt: 'desc',
             },
         }),
         prisma.field.findMany({

@@ -12,6 +12,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -101,6 +109,7 @@ export function PlantingsList({ initialData }: PlantingsListProps) {
     }
 
     function handleSuccess() {
+        handleFormClose();
         router.refresh();
     }
 
@@ -224,34 +233,38 @@ export function PlantingsList({ initialData }: PlantingsListProps) {
                                 ))}
                             </div>
 
+
                             {/* Pagination Controls for Plantings */}
                             {totalPlantingsPages > 1 && (
-                                <div className="flex items-center justify-between mt-6">
-                                    <div className="text-sm text-muted-foreground">
-                                        Showing {plantingsStartIndex + 1} to {Math.min(plantingsEndIndex, plantings.length)} of {plantings.length} plantings
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setPlantingsPage(p => Math.max(1, p - 1))}
-                                            disabled={plantingsPage === 1}
-                                        >
-                                            Previous
-                                        </Button>
-                                        <div className="text-sm">
-                                            Page {plantingsPage} of {totalPlantingsPages}
-                                        </div>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setPlantingsPage(p => Math.min(totalPlantingsPages, p + 1))}
-                                            disabled={plantingsPage === totalPlantingsPages}
-                                        >
-                                            Next
-                                        </Button>
-                                    </div>
-                                </div>
+                                <Pagination className="mt-6">
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                onClick={() => setPlantingsPage(p => Math.max(1, p - 1))}
+                                                className={plantingsPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                            />
+                                        </PaginationItem>
+
+                                        {[...Array(totalPlantingsPages)].map((_, i) => (
+                                            <PaginationItem key={i + 1}>
+                                                <PaginationLink
+                                                    onClick={() => setPlantingsPage(i + 1)}
+                                                    isActive={plantingsPage === i + 1}
+                                                    className="cursor-pointer"
+                                                >
+                                                    {i + 1}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        ))}
+
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                onClick={() => setPlantingsPage(p => Math.min(totalPlantingsPages, p + 1))}
+                                                className={plantingsPage === totalPlantingsPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
                             )}
                         </>
                     )}
@@ -340,34 +353,38 @@ export function PlantingsList({ initialData }: PlantingsListProps) {
                                 ))}
                             </div>
 
+
                             {/* Pagination Controls for Crops */}
                             {totalCropsPages > 1 && (
-                                <div className="flex items-center justify-between mt-6">
-                                    <div className="text-sm text-muted-foreground">
-                                        Showing {cropsStartIndex + 1} to {Math.min(cropsEndIndex, crops.length)} of {crops.length} crops
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setCropsPage(p => Math.max(1, p - 1))}
-                                            disabled={cropsPage === 1}
-                                        >
-                                            Previous
-                                        </Button>
-                                        <div className="text-sm">
-                                            Page {cropsPage} of {totalCropsPages}
-                                        </div>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setCropsPage(p => Math.min(totalCropsPages, p + 1))}
-                                            disabled={cropsPage === totalCropsPages}
-                                        >
-                                            Next
-                                        </Button>
-                                    </div>
-                                </div>
+                                <Pagination className="mt-6">
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                onClick={() => setCropsPage(p => Math.max(1, p - 1))}
+                                                className={cropsPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                            />
+                                        </PaginationItem>
+
+                                        {[...Array(totalCropsPages)].map((_, i) => (
+                                            <PaginationItem key={i + 1}>
+                                                <PaginationLink
+                                                    onClick={() => setCropsPage(i + 1)}
+                                                    isActive={cropsPage === i + 1}
+                                                    className="cursor-pointer"
+                                                >
+                                                    {i + 1}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        ))}
+
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                onClick={() => setCropsPage(p => Math.min(totalCropsPages, p + 1))}
+                                                className={cropsPage === totalCropsPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
                             )}
                         </>
                     )}

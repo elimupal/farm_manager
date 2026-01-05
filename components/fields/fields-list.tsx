@@ -8,6 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -171,32 +179,35 @@ export function FieldsList({ initialFields }: FieldsListProps) {
 
                     {/* Pagination Controls */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-between mt-6">
-                            <div className="text-sm text-muted-foreground">
-                                Showing {startIndex + 1} to {Math.min(endIndex, fields.length)} of {fields.length} fields
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                    disabled={currentPage === 1}
-                                >
-                                    Previous
-                                </Button>
-                                <div className="text-sm">
-                                    Page {currentPage} of {totalPages}
-                                </div>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                    disabled={currentPage === totalPages}
-                                >
-                                    Next
-                                </Button>
-                            </div>
-                        </div>
+                        <Pagination className="mt-6">
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <PaginationPrevious
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                    />
+                                </PaginationItem>
+
+                                {[...Array(totalPages)].map((_, i) => (
+                                    <PaginationItem key={i + 1}>
+                                        <PaginationLink
+                                            onClick={() => setCurrentPage(i + 1)}
+                                            isActive={currentPage === i + 1}
+                                            className="cursor-pointer"
+                                        >
+                                            {i + 1}
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                ))}
+
+                                <PaginationItem>
+                                    <PaginationNext
+                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
                     )}
                 </>
             )}
