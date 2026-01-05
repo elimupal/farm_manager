@@ -26,6 +26,16 @@ export function FieldsList({ initialFields }: FieldsListProps) {
     const [formOpen, setFormOpen] = useState(false);
     const [editingField, setEditingField] = useState<any>(null);
 
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(9); // 3x3 grid
+
+    // Calculate pagination
+    const totalPages = Math.ceil(fields.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentFields = fields.slice(startIndex, endIndex);
+
     async function handleDelete(id: string) {
         if (!confirm("Are you sure you want to delete this field?")) return;
 
@@ -81,82 +91,114 @@ export function FieldsList({ initialFields }: FieldsListProps) {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {fields.map((field) => (
-                        <Card key={field.id}>
-                            <CardHeader className="flex flex-row items-start justify-between space-y-0">
-                                <div className="space-y-1">
-                                    <CardTitle className="text-xl">{field.name}</CardTitle>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="flex-1"
-                                            onClick={() => router.push(`/dashboard/fields/${field.id}`)}
-                                        >
-                                            View Details
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="flex-1"
-                                            onClick={() => handleEdit(field)}
-                                        >
-                                            <Pencil className="h-4 w-4 mr-2" />
-                                            Edit
-                                        </Button>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="sm">
-                                                    <MoreVertical className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem
-                                                    className="text-destructive"
-                                                    onClick={() => handleDelete(field.id)}
-                                                >
-                                                    <Trash2 className="h-4 w-4 mr-2" />
-                                                    Delete
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                <>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {currentFields.map((field) => (
+                            <Card key={field.id}>
+                                <CardHeader className="flex flex-row items-start justify-between space-y-0">
+                                    <div className="space-y-1">
+                                        <CardTitle className="text-xl">{field.name}</CardTitle>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="flex-1"
+                                                onClick={() => router.push(`/dashboard/fields/${field.id}`)}
+                                            >
+                                                View Details
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="flex-1"
+                                                onClick={() => handleEdit(field)}
+                                            >
+                                                <Pencil className="h-4 w-4 mr-2" />
+                                                Edit
+                                            </Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="sm">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem
+                                                        className="text-destructive"
+                                                        onClick={() => handleDelete(field.id)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4 mr-2" />
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
                                     </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground">Area:</span>
-                                    <span className="font-medium">{field.area} hectares</span>
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground">Status:</span>
-                                    <Badge
-                                        variant={field.status === "ACTIVE" ? "default" : "secondary"}
-                                    >
-                                        {FIELD_STATUS_LABELS[field.status as keyof typeof FIELD_STATUS_LABELS]}
-                                    </Badge>
-                                </div>
-                                {field.soilType && (
+                                </CardHeader>
+                                <CardContent className="space-y-2">
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-muted-foreground">Soil:</span>
-                                        <span className="font-medium">{field.soilType}</span>
+                                        <span className="text-muted-foreground">Area:</span>
+                                        <span className="font-medium">{field.area} hectares</span>
                                     </div>
-                                )}
-                                {field.irrigationType && (
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-muted-foreground">Irrigation:</span>
-                                        <span className="font-medium">{field.irrigationType}</span>
+                                        <span className="text-muted-foreground">Status:</span>
+                                        <Badge
+                                            variant={field.status === "ACTIVE" ? "default" : "secondary"}
+                                        >
+                                            {FIELD_STATUS_LABELS[field.status as keyof typeof FIELD_STATUS_LABELS]}
+                                        </Badge>
                                     </div>
-                                )}
-                                <div className="flex items-center justify-between text-sm pt-2 border-t">
-                                    <span className="text-muted-foreground">Plantings:</span>
-                                    <span className="font-medium">{field._count.plantings}</span>
+                                    {field.soilType && (
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-muted-foreground">Soil:</span>
+                                            <span className="font-medium">{field.soilType}</span>
+                                        </div>
+                                    )}
+                                    {field.irrigationType && (
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-muted-foreground">Irrigation:</span>
+                                            <span className="font-medium">{field.irrigationType}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-between text-sm pt-2 border-t">
+                                        <span className="text-muted-foreground">Plantings:</span>
+                                        <span className="font-medium">{field._count.plantings}</span>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between mt-6">
+                            <div className="text-sm text-muted-foreground">
+                                Showing {startIndex + 1} to {Math.min(endIndex, fields.length)} of {fields.length} fields
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    Previous
+                                </Button>
+                                <div className="text-sm">
+                                    Page {currentPage} of {totalPages}
                                 </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
 
             <FieldForm
